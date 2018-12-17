@@ -31,11 +31,20 @@ def get_tags_of_question(soup):
     topics_ = [topic_element.text for topic_element in topic_elements]
     return topics_
     
-def get_answers_of_question(soup,n_answer=4):
+def get_answers_of_question(soup,n_answer=4,question_url=''):
     #r = requests.get(question_url)
     #soup = BeautifulSoup(r.text.encode('utf-8'),'lxml')
     a = soup.find_all(class_='ui_qtext_expanded')
-    answers = [a[i].text for i in range(n_answer)]
+    try:
+        answers = [a[i].text for i in range(n_answer)]
+    except:
+        print("Hellllllllllllllllllllllllllllllllllll"*3)
+        print(question_url)
+        soup = BeautifulSoup(requests.get(question_url).text.encode('utf-8'),'lxml')
+        a = soup.find_all(class_='ui_qtext_expanded')
+        answers = [a[i].text for i in range(n_answer)]
+        
+        return get_answers_of_question(soup)
     return answers
 def write_questions_from_this_topic(topic_url,row_writer,Exam_name='CAT',max_q=50):
     SCROLL_PAUSE_TIME = 1
@@ -84,7 +93,7 @@ def write_questions_from_this_topic(topic_url,row_writer,Exam_name='CAT',max_q=5
                 row_content.append(n_ans)
                 
                 
-                row_content.extend(get_answers_of_question(soup))
+                row_content.extend(get_answers_of_question(soup,4,question_url))
                 [content.encode('utf-8', errors='replace') for content in row_content]
                 row_writer.writerow(row_content)
                 
@@ -130,7 +139,7 @@ def question_from_quora(base_url='https://www.quora.com/',topics=['Common-Admiss
         print("Topic being extracted...")
         print(topic)
         print("==="*30)
-        url = url_for_topics + topics[0]
+        url = url_for_topics + topic
         write_questions_from_this_topic(url,row_writer,Exam_name)
         
     file_handle.close()
@@ -174,7 +183,7 @@ if __name__=='__main__':
     print(topics)
     print(file_name)
     print(Exam_name)
-    input("....."*20+"Press enter to continue")
+    input("....."*20+"\nPress enter to continue")
     
     question_from_quora(base_url,topics,file_name,Exam_name)
     print("\a\a\a\a")
